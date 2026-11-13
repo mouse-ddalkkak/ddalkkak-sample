@@ -1,0 +1,55 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.12'
+	id 'io.spring.dependency-management' version '1.1.7'
+	// jar 에 git.properties → 스타터킷이 실행 중 커밋을 딸깍에 알린다 (실행 중인 버전과 코드가 같은지 비교)
+	id 'com.gorylenko.gradle-git-properties' version '4.0.1'
+}
+
+group = 'io.ddalkkak.sample'
+version = '0.1.0'
+description = '딸깍 샘플 검사 대상 앱 — 일부러 문제를 심었다 (README)'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = 17
+	options.compilerArgs << '-parameters'
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://jitpack.io' } // 딸깍 스타터킷
+}
+
+dependencies {
+	implementation 'com.github.mouse-ddalkkak:ddalkkak:v1.2.0' // 딸깍 스타터킷 (딸깍 v1.2.x)
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'com.h2database:h2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	// 시험은 H2 (src/test/resources/application-test.yml)
+	systemProperty 'spring.profiles.active', 'test'
+	testLogging {
+		events 'failed'
+		exceptionFormat 'full'
+	}
+}
+
+// zip 으로 받은 소스처럼 .git 이 없어도 빌드는 된다 (커밋만 null)
+gitProperties {
+	failOnNoGitDirectory = false
+}
